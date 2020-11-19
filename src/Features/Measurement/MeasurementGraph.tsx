@@ -64,6 +64,7 @@ const MeasurementGraph = () => {
 
   return (
     <div>
+      <SelectMetric />
       {measurementsData.measurements.map(measurement => {
         return (
           <div>
