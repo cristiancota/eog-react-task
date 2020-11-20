@@ -11,11 +11,8 @@ const client = createClient({
 });
 
 const query = `
-query {
-  getMultipleMeasurements(input: [
-      { metricName: "oilTemp" }, 
-      { metricName: "flareTemp" }
-    ]) {
+query($metrics: [MeasurementQuery]!) {
+  getMultipleMeasurements(input: $metrics) {
     metric
     measurements {
       value
@@ -25,6 +22,29 @@ query {
 }
 `;
 
+const getMetrics = (state: IState) => {
+  return state.measurement.selectedMetrics;
+};
+
+export default () => {
+  const metrics = useSelector(getMetrics);
+
+  return (
+    <Provider value={client}>
+      <SelectMetric />
+      <MeasurementGraph metrics={metrics} />
+    </Provider>
+  );
+};
+
+interface Metric {
+  metricName: String;
+}
+
+interface IProps {
+  metrics: Array<Metric>;
+}
+
 const getMeasurements = (state: IState) => {
   const { measurements } = state.measurement;
   return {
@@ -32,20 +52,15 @@ const getMeasurements = (state: IState) => {
   };
 };
 
-export default () => {
-  return (
-    <Provider value={client}>
-      <MeasurementGraph />
-    </Provider>
-  );
-};
-
-const MeasurementGraph = () => {
+const MeasurementGraph = ({ metrics }: IProps) => {
   const dispatch = useDispatch();
   const measurementsData = useSelector(getMeasurements);
 
   const [result] = useQuery({
     query,
+    variables: {
+      metrics,
+    },
   });
 
   const { fetching, data, error } = result;
@@ -64,7 +79,6 @@ const MeasurementGraph = () => {
 
   return (
     <div>
-      <SelectMetric />
       {measurementsData.measurements.map(measurement => {
         return (
           <div>
