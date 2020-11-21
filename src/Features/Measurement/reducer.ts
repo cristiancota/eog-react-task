@@ -3,7 +3,8 @@ import { createSlice, PayloadAction } from 'redux-starter-kit';
 export type Measurement = {
   metric: string;
   measurements: Array<{
-    value: number;
+    value: number,
+    at: number
   }>;
 };
 
@@ -27,6 +28,7 @@ const slice = createSlice({
   reducers: {
     setMetrics: (state, action: PayloadAction<Array<string>>) => {
       state.selectedMetrics = action.payload.map(metric => {
+        debugger;
         return { metricName: metric };
       });
     },
@@ -34,7 +36,7 @@ const slice = createSlice({
       state.measurements = action.payload.map(measurement => {
         return {
           metric: measurement.metric,
-          measurements: measurement.measurements.slice(0, 10),
+          measurements: measurement.measurements.slice(0, 1384),
         };
       });
     },

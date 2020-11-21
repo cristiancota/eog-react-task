@@ -21,4 +21,4 @@ export default function SelectMetric() {
   );
 }
 
-const metrics = ['flareTemp', 'casingPressure', 'injValveOpen', 'oilTemp', 'tubingPressure', 'waterTemp'];
+const metrics = ['flareTemp', 'casingPressure', 'injValveOpen', 'oilTemp', 'tubingPressure', 'waterTemp']; // create type and consume api

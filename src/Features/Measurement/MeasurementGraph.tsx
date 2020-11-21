@@ -5,16 +5,14 @@ import { createClient, Provider, useQuery } from 'urql';
 import SelectMetric from '../../components/SelectMetric';
 import { IState } from '../../store';
 import { actions } from './reducer';
-
-const client = createClient({
-  url: 'https://react.eogresources.com/graphql',
-});
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const query = `
 query($metrics: [MeasurementQuery]!) {
   getMultipleMeasurements(input: $metrics) {
     metric
     measurements {
+      metric
       value
       at
     }
@@ -22,7 +20,21 @@ query($metrics: [MeasurementQuery]!) {
 }
 `;
 
+interface Metric {
+  metricName: String;
+}
+
+interface IProps {
+  metrics: Array<Metric>;
+}
+
+const client = createClient({
+  // move to constants file
+  url: 'https://react.eogresources.com/graphql',
+});
+
 const getMetrics = (state: IState) => {
+  // move to reducer
   return state.measurement.selectedMetrics;
 };
 
@@ -37,22 +49,15 @@ export default () => {
   );
 };
 
-interface Metric {
-  metricName: String;
-}
-
-interface IProps {
-  metrics: Array<Metric>;
-}
-
 const getMeasurements = (state: IState) => {
+  // move to reducer
   const { measurements } = state.measurement;
   return {
     measurements,
   };
 };
 
-const MeasurementGraph = ({ metrics }: IProps) => {
+const MeasurementGraph = ({ metrics }: IProps) => { // create its own file
   const dispatch = useDispatch();
   const measurementsData = useSelector(getMeasurements);
 
@@ -77,9 +82,44 @@ const MeasurementGraph = ({ metrics }: IProps) => {
 
   if (fetching) return <LinearProgress />;
 
+  interface measurementDot {
+    metric: string;
+    value: number;
+    at: number;
+  }
+
+  let graphData;
+
+  if (measurementsData.measurements.length) {
+    graphData = measurementsData.measurements[0].measurements.map(m => {
+      return { name: m.at, temp: m.value };
+    });
+  } else {
+    graphData = [{}];
+  }
+
   return (
     <div>
-      {measurementsData.measurements.map(measurement => {
+      <ResponsiveContainer width="100%" height={500}>
+        <LineChart
+          data={graphData}
+          margin={{
+            top: 5,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="temp" stroke="#82ca9d" />
+        </LineChart>
+      </ResponsiveContainer>
+
+      {/* {measurementsData.measurements.map(measurement => {
         return (
           <div>
             {measurement.metric}
@@ -90,7 +130,7 @@ const MeasurementGraph = ({ metrics }: IProps) => {
             </ul>
           </div>
         );
-      })}
+      })} */}
     </div>
   );
 };
