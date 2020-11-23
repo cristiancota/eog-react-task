@@ -1,9 +1,10 @@
 import LinearProgress from '@material-ui/core/LinearProgress';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useQuery } from 'urql';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { actions, measurementSelector } from './reducer';
+import { actions, lastMeasurementSelector, measurementSelector } from './reducer';
+import CurrentMeasurementCard from './CurrentMeasurementCard';
 
 const InitialMultipleMeasurements = `
 query($metrics: [MeasurementQuery]!) {
@@ -30,6 +31,7 @@ interface Metric {
 const Graph = ({ metrics }: IProps) => {
   const dispatch = useDispatch();
   const measurementsData = useSelector(measurementSelector);
+  const lastMeasurements = useSelector(lastMeasurementSelector);
 
   const [result] = useQuery({
     query: InitialMultipleMeasurements,
@@ -83,34 +85,41 @@ const Graph = ({ metrics }: IProps) => {
   return (
     <div>
       {measurementsData.length ? (
-        <ResponsiveContainer width="100%" height={500}>
-          <LineChart
-            data={graphData}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {metrics.map((metric, i) => {
-              return (
-                <Line
-                  type="monotone"
-                  isAnimationActive={false}
-                  dot={false}
-                  dataKey={metric.metricName}
-                  stroke={getColor(metric.metricName)}
-                />
-              );
+        <div>
+          <ResponsiveContainer width="100%" height={500}>
+            <LineChart
+              data={graphData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {metrics.map((metric, i) => {
+                return (
+                  <Line
+                    type="monotone"
+                    isAnimationActive={false}
+                    dot={false}
+                    dataKey={metric.metricName}
+                    stroke={getColor(metric.metricName)}
+                  />
+                );
+              })}
+            </LineChart>
+          </ResponsiveContainer>
+          <div>
+            {lastMeasurements.map(measurement => {
+              return <CurrentMeasurementCard measurement={measurement} />;
             })}
-          </LineChart>
-        </ResponsiveContainer>
+          </div>
+        </div>
       ) : null}
     </div>
   );

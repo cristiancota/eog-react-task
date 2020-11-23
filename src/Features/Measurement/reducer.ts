@@ -23,6 +23,10 @@ export type ApiErrorAction = {
 const initialState = {
   measurements: [] as Array<{}>,
   selectedMetrics: [] as Array<Metric>,
+  lastMeasurements: [] as Array<{
+    name: string;
+    value: number;
+  }>,
 };
 
 const slice = createSlice({
@@ -35,16 +39,16 @@ const slice = createSlice({
       });
     },
     measurementDataRecevied: (state, action: PayloadAction<Array<Measurement>>) => {
-      const trimmed = action.payload.map(measurement => {
+      state.lastMeasurements = action.payload.map(measurement => {
         return {
-          metric: measurement.metric,
-          measurements: measurement.measurements,
+          name: measurement.metric,
+          value: measurement.measurements[measurement.measurements.length - 1].value,
         };
       });
 
       const hashMap = new Map();
 
-      trimmed.forEach(trimm => {
+      action.payload.forEach(trimm => {
         trimm.measurements.forEach(measurement => {
           if (!hashMap.get(measurement.at)) {
             hashMap.set(measurement.at, {
@@ -75,3 +79,4 @@ export const reducer = slice.reducer;
 export const actions = slice.actions;
 
 export const measurementSelector = (state: IState) => state.measurement.measurements;
+export const lastMeasurementSelector = (state: IState) => state.measurement.lastMeasurements;
