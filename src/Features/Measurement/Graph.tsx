@@ -1,12 +1,11 @@
 import LinearProgress from '@material-ui/core/LinearProgress';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useQuery } from 'urql';
-import { IState } from '../../store';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { actions } from './reducer';
+import { actions, measurementSelector } from './reducer';
 
-const query = `
+const InitialMultipleMeasurements = `
 query($metrics: [MeasurementQuery]!) {
   getMultipleMeasurements(input: $metrics) {
     metric
@@ -25,14 +24,15 @@ interface IProps {
 
 interface Metric {
   metricName: string;
+  after: number;
 }
 
 const Graph = ({ metrics }: IProps) => {
   const dispatch = useDispatch();
-  const measurementsData = useSelector((state: IState) => state.measurement.measurements); // move to reducer
+  const measurementsData = useSelector(measurementSelector);
 
   const [result] = useQuery({
-    query,
+    query: InitialMultipleMeasurements,
     variables: {
       metrics,
     },
@@ -45,12 +45,34 @@ const Graph = ({ metrics }: IProps) => {
       dispatch(actions.measurementApiErrorReceived({ error: error.message }));
       return;
     }
+
     if (!data) return;
-    const { getMultipleMeasurements } = data;
-    dispatch(actions.measurementDataRecevied(getMultipleMeasurements));
+
+    const { getMultipleMeasurements: measurements } = data;
+    dispatch(actions.measurementDataRecevied(measurements));
   }, [dispatch, data, error]);
 
-  if (fetching) return <LinearProgress />;
+  useEffect(() => {
+    if (data && data.getMultipleMeasurements.length) {
+      const interval = setInterval(() => {
+        const timestamp = Date.now() - 1800000;
+
+        const selectedMetrics = metrics.map((metric: Metric) => {
+          return { metricName: metric.metricName, after: timestamp };
+        });
+
+        dispatch(actions.setSelectedMetrics(selectedMetrics));
+
+        const { getMultipleMeasurements: measurements } = data;
+
+        dispatch(actions.measurementDataRecevied(measurements));
+      }, 1300);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [data]);
 
   let graphData = [{}];
 
@@ -76,8 +98,16 @@ const Graph = ({ metrics }: IProps) => {
             <YAxis />
             <Tooltip />
             <Legend />
-            {metrics.map(metric => {
-              return <Line type="monotone" dot={false} dataKey={metric.metricName} stroke={getRandomColor()} />;
+            {metrics.map((metric, i) => {
+              return (
+                <Line
+                  type="monotone"
+                  isAnimationActive={false}
+                  dot={false}
+                  dataKey={metric.metricName}
+                  stroke={getColor(metric.metricName)}
+                />
+              );
             })}
           </LineChart>
         </ResponsiveContainer>
@@ -86,13 +116,16 @@ const Graph = ({ metrics }: IProps) => {
   );
 };
 
-function getRandomColor() {
-  var letters = '0123456789ABCDEF';
-  var color = '#';
-  for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+const map = new Map();
+map.set('flareTemp', '#9d0303');
+map.set('casingPressure', '#9d039d');
+map.set('injValveOpen', '#03439d');
+map.set('oilTemp', '#039d83');
+map.set('tubingPressure', '#039d12');
+map.set('waterTemp', '#9d5403');
+
+function getColor(index: string) {
+  return map.get(index);
 }
 
 export default Graph;

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from 'redux-starter-kit';
+import { IState } from '../../store';
 
 export type Measurement = {
   metric: string;
@@ -12,6 +13,7 @@ export type Measurement = {
 // TODO don't repeat
 interface Metric {
   metricName: string;
+  after: number;
 }
 
 export type ApiErrorAction = {
@@ -27,16 +29,16 @@ const slice = createSlice({
   name: 'measurement',
   initialState,
   reducers: {
-    setMetrics: (state, action: PayloadAction<Array<string>>) => {
+    setSelectedMetrics: (state, action: PayloadAction<Array<Metric>>) => {
       state.selectedMetrics = action.payload.map(metric => {
-        return { metricName: metric };
+        return { metricName: metric.metricName, after: metric.after };
       });
     },
     measurementDataRecevied: (state, action: PayloadAction<Array<Measurement>>) => {
       const trimmed = action.payload.map(measurement => {
         return {
           metric: measurement.metric,
-          measurements: measurement.measurements.slice(0, 1384),
+          measurements: measurement.measurements,
         };
       });
 
@@ -71,3 +73,5 @@ const slice = createSlice({
 
 export const reducer = slice.reducer;
 export const actions = slice.actions;
+
+export const measurementSelector = (state: IState) => state.measurement.measurements;

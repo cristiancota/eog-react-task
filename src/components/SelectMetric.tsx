@@ -7,6 +7,8 @@ import { useDispatch } from 'react-redux';
 export default function SelectMetric() {
   const dispatch = useDispatch();
 
+  const thirtyMinutesAgo = Date.now() - 1800000;
+
   return (
     <Autocomplete
       multiple
@@ -15,7 +17,13 @@ export default function SelectMetric() {
       getOptionLabel={option => option}
       renderInput={params => <TextField {...params} variant="standard" label="Metrics" />}
       onChange={(event, value) => {
-        dispatch(actions.setMetrics(value));
+        const selectedMetrics = value.map(val => {
+          return {
+            metricName : val,
+            after: thirtyMinutesAgo,
+          };
+        });
+        dispatch(actions.setSelectedMetrics(selectedMetrics));
       }}
     />
   );
