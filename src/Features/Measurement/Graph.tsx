@@ -6,7 +6,7 @@ import { actions, measurementSelector, selectedMetrics } from './reducer';
 import { Metric } from './types';
 import { formatter, getColor, labelFormatter } from './util';
 
-const InitialMultipleMeasurements = `
+const multipleMeasurementsQuery = `
 query($metrics: [MeasurementQuery]!) {
   getMultipleMeasurements(input: $metrics) {
     metric
@@ -21,12 +21,12 @@ query($metrics: [MeasurementQuery]!) {
 
 const Graph = () => {
   const dispatch = useDispatch();
+
   const measurementsData = useSelector(measurementSelector);
-  const timestamp = Date.now() - 1800000;
   const metrics = useSelector(selectedMetrics);
 
   const [result] = useQuery({
-    query: InitialMultipleMeasurements,
+    query: multipleMeasurementsQuery,
     variables: {
       metrics,
     },
@@ -42,21 +42,20 @@ const Graph = () => {
 
     if (!data) return;
 
-    const { getMultipleMeasurements: measurements } = data;
-    dispatch(actions.measurementDataRecevied(measurements));
+    dispatch(actions.measurementDataRecevied(data.getMultipleMeasurements));
   }, [dispatch, data, error]);
 
   useEffect(() => {
     if (data && data.getMultipleMeasurements.length) {
       const interval = setInterval(() => {
+        const timestamp = Date.now() - 1800000;
         if (!fetching) {
           const selectedMetrics = metrics.map((metric: Metric) => {
             return { metricName: metric.metricName, after: timestamp };
           });
-          dispatch(actions.setSelectedMetrics(selectedMetrics));
 
-          const { getMultipleMeasurements: measurements } = data;
-          dispatch(actions.measurementDataRecevied(measurements));
+          dispatch(actions.setSelectedMetrics(selectedMetrics));
+          dispatch(actions.measurementDataRecevied(data.getMultipleMeasurements));
         }
       }, 1300);
 
@@ -66,19 +65,13 @@ const Graph = () => {
     }
   }, [data]);
 
-  let graphData = [{}];
-
-  if (measurementsData.length) {
-    graphData = measurementsData;
-  }
-
   return (
     <div>
       {measurementsData.length ? (
         <div>
           <ResponsiveContainer width="100%" height={500}>
             <LineChart
-              data={graphData}
+              data={measurementsData}
               margin={{
                 top: 5,
                 right: 30,
@@ -87,7 +80,7 @@ const Graph = () => {
               }}
             >
               <CartesianGrid />
-              <XAxis dataKey="name" interval={220} tickFormatter={formatter} />
+              <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={200} tickFormatter={formatter} />
               <YAxis />
               <Tooltip labelFormatter={labelFormatter} />
               {metrics.map(metric => {

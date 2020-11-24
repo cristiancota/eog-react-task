@@ -1,13 +1,11 @@
 import moment from 'moment';
 
 export const formatter = (date: number) => {
-  const dateObject = new Date(date);
-  return moment(dateObject).format('h:mm');
+  return formatDate(date, 'h:mm a');
 };
 
 export const labelFormatter = (date: any) => {
-  const dateObject = new Date(date);
-  return moment(dateObject).format('MMM D YYYY, h:mm:ss a');
+  return formatDate(date, 'MMM D YYYY, h:mm:ss a');
 };
 
 const map = new Map();
@@ -20,4 +18,8 @@ map.set('waterTemp', '#9d5403');
 
 export const getColor = (index: string) => {
   return map.get(index);
+};
+
+const formatDate = (date: any, format: string) => {
+  return moment(new Date(date)).format(format);
 };
