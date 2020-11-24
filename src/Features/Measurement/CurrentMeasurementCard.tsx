@@ -3,13 +3,7 @@ import CardContent from '@material-ui/core/CardContent';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import React from 'react';
-
-interface IProps {
-  measurement: {
-    name: string;
-    value: number;
-  };
-}
+import { CardProps } from './types';
 
 const useStyles = makeStyles({
   root: {
@@ -22,7 +16,7 @@ const useStyles = makeStyles({
   },
 });
 
-const CurrentMeasurementCard = ({ measurement }: IProps) => {
+const CurrentMeasurementCard = ({ measurement }: CardProps) => {
   const classes = useStyles();
 
   return (

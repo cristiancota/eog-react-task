@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useQuery } from 'urql';
-import CurrentMeasurementCard from './CurrentMeasurementCard';
-import { actions, lastMeasurementSelector, measurementSelector } from './reducer';
-import moment from 'moment';
+import { actions, measurementSelector, selectedMetrics } from './reducer';
+import { Metric } from './types';
+import { formatter, getColor, labelFormatter } from './util';
 
 const InitialMultipleMeasurements = `
 query($metrics: [MeasurementQuery]!) {
@@ -19,19 +19,11 @@ query($metrics: [MeasurementQuery]!) {
 }
 `;
 
-interface IProps {
-  metrics: Array<Metric>;
-}
-
-interface Metric {
-  metricName: string;
-  after: number;
-}
-
-const Graph = ({ metrics }: IProps) => {
+const Graph = () => {
   const dispatch = useDispatch();
   const measurementsData = useSelector(measurementSelector);
-  const lastMeasurements = useSelector(lastMeasurementSelector);
+  const timestamp = Date.now() - 1800000;
+  const metrics = useSelector(selectedMetrics);
 
   const [result] = useQuery({
     query: InitialMultipleMeasurements,
@@ -57,12 +49,12 @@ const Graph = ({ metrics }: IProps) => {
   useEffect(() => {
     if (data && data.getMultipleMeasurements.length) {
       const interval = setInterval(() => {
-        const timestamp = Date.now() - 1800000;
         if (!fetching) {
           const selectedMetrics = metrics.map((metric: Metric) => {
             return { metricName: metric.metricName, after: timestamp };
           });
           dispatch(actions.setSelectedMetrics(selectedMetrics));
+
           const { getMultipleMeasurements: measurements } = data;
           dispatch(actions.measurementDataRecevied(measurements));
         }
@@ -79,15 +71,6 @@ const Graph = ({ metrics }: IProps) => {
   if (measurementsData.length) {
     graphData = measurementsData;
   }
-
-  const formatter = (a: number) => {
-    const d = new Date(a);
-    return d.getHours() + ':' + (d.getMinutes() > 10 ? d.getMinutes() : '0' + d.getMinutes());
-  };
-
-  const labelFormatter = (a: any) => {
-    return moment(new Date(a)).format('MMM D YYYY, h:mm:ss a');
-  };
 
   return (
     <div>
@@ -120,27 +103,14 @@ const Graph = ({ metrics }: IProps) => {
               })}
             </LineChart>
           </ResponsiveContainer>
-          <div>
-            {lastMeasurements.map(measurement => {
-              return <CurrentMeasurementCard measurement={measurement} />;
-            })}
-          </div>
         </div>
-      ) : null}
+      ) : (
+        <div>
+          <p>Please select</p>
+        </div>
+      )}
     </div>
   );
 };
-
-const map = new Map();
-map.set('flareTemp', '#9d0303');
-map.set('casingPressure', '#9d039d');
-map.set('injValveOpen', '#03439d');
-map.set('oilTemp', '#039d83');
-map.set('tubingPressure', '#039d12');
-map.set('waterTemp', '#9d5403');
-
-function getColor(index: string) {
-  return map.get(index);
-}
 
 export default Graph;

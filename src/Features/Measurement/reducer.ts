@@ -1,24 +1,6 @@
 import { createSlice, PayloadAction } from 'redux-starter-kit';
 import { IState } from '../../store';
-
-export type Measurement = {
-  metric: string;
-  measurements: Array<{
-    value: number;
-    at: number;
-    metric: string;
-  }>;
-};
-
-// TODO don't repeat
-interface Metric {
-  metricName: string;
-  after: number;
-}
-
-export type ApiErrorAction = {
-  error: string;
-};
+import { Measurement, Metric } from './types';
 
 const initialState = {
   measurements: [] as Array<{}>,
@@ -27,6 +9,10 @@ const initialState = {
     name: string;
     value: number;
   }>,
+};
+
+export type ApiErrorAction = {
+  error: string;
 };
 
 const slice = createSlice({
@@ -80,3 +66,4 @@ export const actions = slice.actions;
 
 export const measurementSelector = (state: IState) => state.measurement.measurements;
 export const lastMeasurementSelector = (state: IState) => state.measurement.lastMeasurements;
+export const selectedMetrics = (state: IState) => state.measurement.selectedMetrics;
