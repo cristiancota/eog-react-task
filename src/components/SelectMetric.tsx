@@ -6,7 +6,6 @@ import { useDispatch } from 'react-redux';
 
 export default function SelectMetric() {
   const dispatch = useDispatch();
-
   const thirtyMinutesAgo = Date.now() - 1800000;
 
   return (

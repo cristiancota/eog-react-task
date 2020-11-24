@@ -1,18 +1,11 @@
 import { createSlice, PayloadAction } from 'redux-starter-kit';
 import { IState } from '../../store';
-import { Measurement, Metric } from './types';
+import { Measurement, Metric, ApiErrorAction, KeyValue } from './types';
 
 const initialState = {
   measurements: [] as Array<{}>,
   selectedMetrics: [] as Array<Metric>,
-  lastMeasurements: [] as Array<{
-    name: string;
-    value: number;
-  }>,
-};
-
-export type ApiErrorAction = {
-  error: string;
+  lastMeasurements: [] as Array<KeyValue>,
 };
 
 const slice = createSlice({

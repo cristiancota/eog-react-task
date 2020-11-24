@@ -22,3 +22,12 @@ export type CardProps = {
     value: number;
   };
 };
+
+export type ApiErrorAction = {
+  error: string;
+};
+
+export type KeyValue = {
+  name: string;
+  value: number;
+};
