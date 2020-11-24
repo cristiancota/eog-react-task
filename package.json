@@ -12,6 +12,7 @@
     "@types/recharts": "^1.8.16",
     "graphql": "^14.5.8",
     "isomorphic-fetch": "^2.2.1",
+    "moment": "^2.29.1",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-redux": "^7.1.3",

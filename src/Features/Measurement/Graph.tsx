@@ -1,10 +1,10 @@
-import LinearProgress from '@material-ui/core/LinearProgress';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useQuery } from 'urql';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { actions, lastMeasurementSelector, measurementSelector } from './reducer';
 import CurrentMeasurementCard from './CurrentMeasurementCard';
+import { actions, lastMeasurementSelector, measurementSelector } from './reducer';
+import moment from 'moment';
 
 const InitialMultipleMeasurements = `
 query($metrics: [MeasurementQuery]!) {
@@ -58,16 +58,14 @@ const Graph = ({ metrics }: IProps) => {
     if (data && data.getMultipleMeasurements.length) {
       const interval = setInterval(() => {
         const timestamp = Date.now() - 1800000;
-
-        const selectedMetrics = metrics.map((metric: Metric) => {
-          return { metricName: metric.metricName, after: timestamp };
-        });
-
-        dispatch(actions.setSelectedMetrics(selectedMetrics));
-
-        const { getMultipleMeasurements: measurements } = data;
-
-        dispatch(actions.measurementDataRecevied(measurements));
+        if (!fetching) {
+          const selectedMetrics = metrics.map((metric: Metric) => {
+            return { metricName: metric.metricName, after: timestamp };
+          });
+          dispatch(actions.setSelectedMetrics(selectedMetrics));
+          const { getMultipleMeasurements: measurements } = data;
+          dispatch(actions.measurementDataRecevied(measurements));
+        }
       }, 1300);
 
       return () => {
@@ -81,6 +79,15 @@ const Graph = ({ metrics }: IProps) => {
   if (measurementsData.length) {
     graphData = measurementsData;
   }
+
+  const formatter = (a: number) => {
+    const d = new Date(a);
+    return d.getHours() + ':' + (d.getMinutes() > 10 ? d.getMinutes() : '0' + d.getMinutes());
+  };
+
+  const labelFormatter = (a: any) => {
+    return moment(new Date(a)).format('MMM D YYYY, h:mm:ss a');
+  };
 
   return (
     <div>
@@ -97,11 +104,10 @@ const Graph = ({ metrics }: IProps) => {
               }}
             >
               <CartesianGrid />
-              <XAxis dataKey="name" />
+              <XAxis dataKey="name" interval={220} tickFormatter={formatter} />
               <YAxis />
-              <Tooltip />
-              <Legend />
-              {metrics.map((metric, i) => {
+              <Tooltip labelFormatter={labelFormatter} />
+              {metrics.map(metric => {
                 return (
                   <Line
                     type="monotone"
