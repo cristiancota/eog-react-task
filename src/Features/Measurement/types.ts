@@ -4,7 +4,6 @@ export type IProps = {
 
 export type Metric = {
   metricName: string;
-  after: number;
 };
 
 export type Measurement = {

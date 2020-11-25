@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useQuery } from 'urql';
-import { actions, measurementSelector, selectedMetrics } from './reducer';
-import { Metric } from './types';
+import { actions, measurementSelector, selectedMetricsSelector } from './reducer';
 import { formatter, getColor, labelFormatter } from './util';
 
 const multipleMeasurementsQuery = `
 query($metrics: [MeasurementQuery]!) {
+  heartBeat,
   getMultipleMeasurements(input: $metrics) {
     metric
     measurements {
@@ -23,13 +23,16 @@ const Graph = () => {
   const dispatch = useDispatch();
 
   const measurementsData = useSelector(measurementSelector);
-  const metrics = useSelector(selectedMetrics);
+  const selectedMetrics = useSelector(selectedMetricsSelector);
 
   const [result] = useQuery({
+    requestPolicy: 'cache-and-network',
+    pollInterval: 1300,
     query: multipleMeasurementsQuery,
     variables: {
-      metrics,
+      metrics: selectedMetrics,
     },
+    pause: selectedMetrics.length === 0,
   });
 
   const { fetching, data, error } = result;
@@ -42,28 +45,9 @@ const Graph = () => {
 
     if (!data) return;
 
+    dispatch(actions.setHeartBeat(data.heartBeat));
     dispatch(actions.measurementDataRecevied(data.getMultipleMeasurements));
   }, [dispatch, data, error]);
-
-  useEffect(() => {
-    if (data && data.getMultipleMeasurements.length) {
-      const interval = setInterval(() => {
-        const timestamp = Date.now() - 1800000;
-        if (!fetching) {
-          const selectedMetrics = metrics.map((metric: Metric) => {
-            return { metricName: metric.metricName, after: timestamp };
-          });
-
-          dispatch(actions.setSelectedMetrics(selectedMetrics));
-          dispatch(actions.measurementDataRecevied(data.getMultipleMeasurements));
-        }
-      }, 1300);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [data]);
 
   return (
     <div>
@@ -83,7 +67,7 @@ const Graph = () => {
               <XAxis dataKey="name" interval="preserveStartEnd" minTickGap={200} tickFormatter={formatter} />
               <YAxis />
               <Tooltip labelFormatter={labelFormatter} />
-              {metrics.map(metric => {
+              {selectedMetrics.map((metric, i) => {
                 return (
                   <Line
                     type="monotone"
@@ -91,6 +75,7 @@ const Graph = () => {
                     dot={false}
                     dataKey={metric.metricName}
                     stroke={getColor(metric.metricName)}
+                    key={i}
                   />
                 );
               })}

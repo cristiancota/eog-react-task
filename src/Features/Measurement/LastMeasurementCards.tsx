@@ -7,8 +7,8 @@ const LastMeasurementCards = () => {
   const lastMeasurements = useSelector(lastMeasurementSelector);
   return (
     <div>
-      {lastMeasurements.map(measurement => {
-        return <CurrentMeasurementCard measurement={measurement} />;
+      {lastMeasurements.map((measurement, i) => {
+        return <CurrentMeasurementCard key={i} measurement={measurement} />;
       })}
     </div>
   );
