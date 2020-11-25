@@ -32,10 +32,10 @@ const Graph = () => {
     variables: {
       metrics: selectedMetrics,
     },
-    pause: selectedMetrics.length === 0,
+    pause: selectedMetrics.length === 0 && measurementsData.length === 0,
   });
 
-  const { fetching, data, error } = result;
+  const { data, error } = result;
 
   useEffect(() => {
     if (error) {
