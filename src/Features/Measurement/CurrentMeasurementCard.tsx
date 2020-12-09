@@ -10,10 +10,21 @@ const useStyles = makeStyles({
     width: 200,
     display: 'inline-block',
     margin: '10px',
+    ['@media (max-width:780px)']: {
+      width: '40%',
+      fontSize: 24
+    },
   },
   title: {
     fontSize: 14,
   },
+  textValue: {
+    fontSize: 32,
+    textAlign: 'center',
+    ['@media (max-width:780px)']: {
+      fontSize: 24
+    },
+  }
 });
 
 const CurrentMeasurementCard = ({ measurement }: CardProps) => {
@@ -25,7 +36,7 @@ const CurrentMeasurementCard = ({ measurement }: CardProps) => {
         <Typography className={classes.title} color="textSecondary" gutterBottom>
           {measurement.name}
         </Typography>
-        <Typography variant="h4" component="h2">
+        <Typography component="h4" className={classes.textValue}>
           {measurement.value}
         </Typography>
       </CardContent>

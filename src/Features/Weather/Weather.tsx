@@ -40,7 +40,6 @@ export default () => {
 
 const Weather = () => {
   const getLocation = useGeolocation();
-  // Default to houston
   const latLong = {
     latitude: getLocation.latitude || 29.7604,
     longitude: getLocation.longitude || -95.3698,
