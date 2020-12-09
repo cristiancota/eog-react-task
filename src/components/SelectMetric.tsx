@@ -24,9 +24,17 @@ export default function SelectMetric() {
     }
 
     if (!data) return;
-
     dispatch(actions.setAvailableMetrics(data.getMetrics));
   }, [dispatch, data, error]);
+
+  const handleOnchange = (_event: React.FormEvent<HTMLInputElement>, value: string[]) => {
+    const selectedMetrics = value.map(val => {
+      return {
+        metricName: val,
+      };
+    });
+    dispatch(actions.setSelectedMetrics(selectedMetrics));
+  };
 
   return (
     <Autocomplete
@@ -35,14 +43,7 @@ export default function SelectMetric() {
       options={metrics}
       getOptionLabel={option => option}
       renderInput={params => <TextField {...params} variant="standard" label="Metrics" />}
-      onChange={(event, value) => {
-        const selectedMetrics = value.map(val => {
-          return {
-            metricName: val,
-          };
-        });
-        dispatch(actions.setSelectedMetrics(selectedMetrics));
-      }}
+      onChange={(e: any, value: string[]) => handleOnchange(e, value)}
     />
   );
 }
